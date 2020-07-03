@@ -29,9 +29,9 @@ class QueryItem {
 
   factory QueryItem.fromJson(Map<String, dynamic> json) {
     var jsonOwner = json['owner'];
-    print(jsonOwner.toString());
+
     var objOwner = Owner.fromJson(jsonOwner);
-    print(objOwner.avatarUrl);
+
     return QueryItem(
       fullName: json['full_name'],
       description: json['description'],

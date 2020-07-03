@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:github_search_with_flutter/models/QueryResult.dart';
 
-class ListItemState extends State<ListItem> {
-  QueryItem _queryItem;
+class ListItem extends StatelessWidget {
+  final QueryItem queryItem;
 
-  ListItemState(this._queryItem);
+  ListItem({Key key, this.queryItem}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class ListItemState extends State<ListItem> {
         child: Row(
           children: <Widget>[
             Image.network(
-              _queryItem.owner?.avatarUrl ?? "",
+              queryItem.owner?.avatarUrl ?? "",
               width: 64,
               height: 64,
             ),
@@ -30,13 +30,13 @@ class ListItemState extends State<ListItem> {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            _queryItem.fullName,
+                            queryItem.fullName,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                         Text(
-                          "★" + _queryItem.stargazersCount.toString(),
+                          "★" + queryItem.stargazersCount.toString(),
                           textAlign: TextAlign.right,
                         )
                       ],
@@ -44,7 +44,7 @@ class ListItemState extends State<ListItem> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(_queryItem.description ?? "",
+                    child: Text(queryItem.description ?? "",
                         overflow: TextOverflow.ellipsis),
                   ),
                 ],
@@ -55,13 +55,4 @@ class ListItemState extends State<ListItem> {
       ),
     );
   }
-}
-
-class ListItem extends StatefulWidget {
-  final QueryItem queryItem;
-
-  ListItem({Key key, this.queryItem}) : super(key: key);
-
-  @override
-  createState() => ListItemState(queryItem);
 }

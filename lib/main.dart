@@ -1,4 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:github_search_with_flutter/models/QueryResult.dart';
+import 'package:github_search_with_flutter/widgets/listItem.dart';
+import 'package:http/http.dart' as http;
+
+import 'constants.dart';
 
 void main() => runApp(MyApp());
 
@@ -44,9 +51,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  List<String> litems = ["1", "2", "Third", "4"];
   final TextEditingController eCtrl = new TextEditingController();
+
+  Future<QueryResult> futureQueryResult;
 
   void _incrementCounter(String input) {
     setState(() {
@@ -55,16 +62,9 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      litems.add(input);
-      _counter++;
+      futureQueryResult = searchRepos(input, "stars", "desc");
     });
   }
-  
-//  void _searchGithub(){
-//    setState(() {
-//      litems.add(value)
-//    });
-//  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,23 +108,57 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
             Expanded(
-              child: ListView.builder(
-                  itemCount: litems.length,
-                  itemBuilder: (BuildContext ctxt, int index) {
-                    return new Text(litems[index]);
+              child: FutureBuilder<QueryResult>(
+                  future: futureQueryResult,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (snapshot.hasError) {
+                        return Text("${snapshot.error}");
+                      } else if (snapshot.hasData) {
+                        return ListView.builder(
+                            itemCount: snapshot.data.items.length,
+                            itemBuilder: (BuildContext bc, int index) {
+                              return ListItem(
+                                queryItem: snapshot.data.items[index],
+                              );
+                            });
+                      } else {
+                        return Text("No results");
+                      }
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.none) {
+                      return Container();
+                    } else {
+                      return Center(child: CircularProgressIndicator());
+                    }
                   }),
             ),
-//            Text(
-//              '$_counter'
-//            ),
           ],
         ),
       ),
-//      floatingActionButton: FloatingActionButton(
-//        onPressed: _incrementCounter,
-//        tooltip: 'Increment',
-//        child: Icon(Icons.add),
-//      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+}
+
+Future<QueryResult> searchRepos(String query, String sort, String order) async {
+  var queryParameters = {
+    'q': query,
+    'sort': sort,
+    'order': order,
+  };
+  var uri =
+      Uri.https(GITHUB_API_URL, GITHUB_API_GET_SEARCH_REPO, queryParameters);
+
+  final response = await http.get(uri);
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return QueryResult.fromJson(json.decode(response.body));
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to search Repos with status code ' +
+        response.statusCode.toString());
   }
 }

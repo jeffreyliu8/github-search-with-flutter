@@ -54,41 +54,43 @@ class MyHomePage extends StatelessWidget {
         title: Text(title),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            SearchBar(onTextReadyForSearch: (String val) {
-              mainViewModel.makeApiCallToBackend(val);
-            }),
-            Expanded(
-              child: Consumer<MainViewModel>(
-                builder: (_, viewModel, __) => FutureBuilder<QueryResult>(
-                    future: viewModel.futureQueryResult,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return Text("${snapshot.error}");
-                        } else if (snapshot.hasData) {
-                          return ListView.builder(
-                              itemCount: snapshot.data.items.length,
-                              itemBuilder: (BuildContext bc, int index) {
-                                return ListItem(
-                                  queryItem: snapshot.data.items[index],
-                                );
-                              });
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: SafeArea(
+          child: Column(
+            children: <Widget>[
+              SearchBar(onTextReadyForSearch: (String val) {
+                mainViewModel.makeApiCallToBackend(val);
+              }),
+              Expanded(
+                child: Consumer<MainViewModel>(
+                  builder: (_, viewModel, __) => FutureBuilder<QueryResult>(
+                      future: viewModel.futureQueryResult,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasError) {
+                            return Text("${snapshot.error}");
+                          } else if (snapshot.hasData) {
+                            return ListView.builder(
+                                itemCount: snapshot.data.items.length,
+                                itemBuilder: (BuildContext bc, int index) {
+                                  return ListItem(
+                                    queryItem: snapshot.data.items[index],
+                                  );
+                                });
+                          } else {
+                            return Text("No results");
+                          }
+                        } else if (snapshot.connectionState ==
+                            ConnectionState.none) {
+                          return Container();
                         } else {
-                          return Text("No results");
+                          return Center(child: CircularProgressIndicator());
                         }
-                      } else if (snapshot.connectionState ==
-                          ConnectionState.none) {
-                        return Container();
-                      } else {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                    }),
+                      }),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
